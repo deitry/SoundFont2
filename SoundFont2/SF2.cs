@@ -1,23 +1,34 @@
 ﻿using Kermalis.EndianBinaryIO;
 using System;
 using System.IO;
+using JetBrains.Annotations;
+using Kermalis.SoundFont2.Runtime;
 
 namespace Kermalis.SoundFont2
 {
+	[PublicAPI]
 	public sealed class SF2
 	{
 		private uint _size;
+
+		/// <summary>Gives basic information about the SoundFont compatible bank that is contained in the file.</summary>
 		public InfoListChunk InfoChunk { get; }
+
+		/// <summary>Contains a single optional smpl sub-chunk which contains all the RAM based sound data associated with the SoundFont compatible bank</summary>
 		public SdtaListChunk SoundChunk { get; }
+
+		/// <summary>The articulation data within a SoundFont 2</summary>
 		public PdtaListChunk HydraChunk { get; }
 
 		/// <summary>For creating</summary>
-		public SF2()
+		private SF2()
 		{
 			InfoChunk = new InfoListChunk(this);
 			SoundChunk = new SdtaListChunk(this);
 			HydraChunk = new PdtaListChunk(this);
 		}
+
+		public static SF2 Create() => new SF2();
 
 		/// <summary>For reading</summary>
 		public SF2(string path)
@@ -90,7 +101,7 @@ namespace Kermalis.SoundFont2
 		}
 		public void AddInstrumentBag()
 		{
-			HydraChunk.IBAGSubChunk.AddBag(new SF2Bag(this, false));
+			HydraChunk.IBAGSubChunk.Add(new SF2Bag(this, false));
 		}
 		public void AddInstrumentModulator()
 		{
@@ -98,19 +109,19 @@ namespace Kermalis.SoundFont2
 		}
 		public void AddInstrumentGenerator()
 		{
-			HydraChunk.IGENSubChunk.AddGenerator(new SF2GeneratorList());
+			HydraChunk.IGENSubChunk.Add(new SF2Generator());
 		}
-		public void AddInstrumentGenerator(SF2Generator generator, SF2GeneratorAmount amount)
+		public void AddInstrumentGenerator(SF2GeneratorType generator, SF2GeneratorAmount amount)
 		{
-			HydraChunk.IGENSubChunk.AddGenerator(new SF2GeneratorList(generator, amount));
+			HydraChunk.IGENSubChunk.Add(new SF2Generator(generator, amount));
 		}
 		public void AddPreset(string name, ushort preset, ushort bank)
 		{
-			HydraChunk.PHDRSubChunk.AddPreset(new SF2PresetHeader(name, preset, bank, (ushort)HydraChunk.PBAGSubChunk.Count));
+			HydraChunk.PHDRSubChunk.Add(new SF2PresetHeader(name, preset, bank, (ushort)HydraChunk.PBAGSubChunk.Count));
 		}
 		public void AddPresetBag()
 		{
-			HydraChunk.PBAGSubChunk.AddBag(new SF2Bag(this, true));
+			HydraChunk.PBAGSubChunk.Add(new SF2Bag(this, true));
 		}
 		public void AddPresetModulator()
 		{
@@ -118,11 +129,11 @@ namespace Kermalis.SoundFont2
 		}
 		public void AddPresetGenerator()
 		{
-			HydraChunk.PGENSubChunk.AddGenerator(new SF2GeneratorList());
+			HydraChunk.PGENSubChunk.Add(new SF2Generator());
 		}
-		public void AddPresetGenerator(SF2Generator generator, SF2GeneratorAmount amount)
+		public void AddPresetGenerator(SF2GeneratorType generator, SF2GeneratorAmount amount)
 		{
-			HydraChunk.PGENSubChunk.AddGenerator(new SF2GeneratorList(generator, amount));
+			HydraChunk.PGENSubChunk.Add(new SF2Generator(generator, amount));
 		}
 
 		private uint AddSampleHeader(string name, uint start, uint end, uint loopStart, uint loopEnd, uint sampleRate, byte originalKey, sbyte pitchCorrection)
@@ -152,6 +163,52 @@ namespace Kermalis.SoundFont2
 				+ InfoChunk.UpdateSize() + 8
 				+ SoundChunk.UpdateSize() + 8
 				+ HydraChunk.UpdateSize() + 8;
+		}
+
+		public SF2Preset? GetPreset(string presetName)
+		{
+			var header = HydraChunk.PHDRSubChunk[presetName];
+			if (header is null)
+				return null;
+
+			var pHeaderNdx = HydraChunk.PHDRSubChunk.IndexOf(header);
+			var nextPHeader = pHeaderNdx < HydraChunk.PHDRSubChunk.Count - 1
+				? HydraChunk.PHDRSubChunk[pHeaderNdx + 1]
+				: null;
+
+			var lastPBagNdx = nextPHeader?.PresetBagIndex - 1 ?? HydraChunk.PBAGSubChunk.Count - 1;
+			// var pBagCnt = lastPBagNdx - header.PresetBagIndex + 1;
+
+			var preset = new SF2Preset(header);
+			for (var i = header.PresetBagIndex; i <= lastPBagNdx; i++)
+			{
+				var pBag = HydraChunk.PBAGSubChunk[header.PresetBagIndex];
+
+				var pGenNdx = pBag.GeneratorIndex;
+				var nextPBag = i + 1 < HydraChunk.PBAGSubChunk.Count ? HydraChunk.PBAGSubChunk[i + 1] : null;
+				var lastPGenNdx = nextPBag?.GeneratorIndex - 1 ?? HydraChunk.PGENSubChunk.Count - 1;
+
+				var bag = new Runtime.SF2PresetBag();
+
+				for (var j = pGenNdx; j <= lastPGenNdx; j++)
+				{
+					var pGen = HydraChunk.PGENSubChunk[j];
+					bag.Generators.Add(pGen);
+
+					if (pGen.Generator == SF2GeneratorType.Instrument)
+					{
+						var inst = HydraChunk.INSTSubChunk[pGen.GeneratorAmount.Amount];
+						if (inst is null)
+							throw new InvalidDataException("Instrument not found");
+
+						bag.Instrument = inst;
+					}
+				}
+
+				preset.Bags.Add(bag);
+			}
+
+			return preset;
 		}
 	}
 }

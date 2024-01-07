@@ -3,6 +3,7 @@
 namespace Kermalis.SoundFont2
 {
 	/// <summary>SF2 spec v2.1 page 19 - Two bytes that can handle either two 8-bit values or a single 16-bit value</summary>
+	[OriginalName("genAmountType")]
 	[StructLayout(LayoutKind.Explicit)]
 	public struct SF2GeneratorAmount
 	{

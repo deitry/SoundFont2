@@ -1,7 +1,9 @@
-﻿using Kermalis.EndianBinaryIO;
+﻿using JetBrains.Annotations;
+using Kermalis.EndianBinaryIO;
 
 namespace Kermalis.SoundFont2
 {
+	[PublicAPI]
 	public sealed class SF2PresetHeader
 	{
 		public const uint SIZE = 38;

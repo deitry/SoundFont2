@@ -15,8 +15,16 @@
 		<AssemblyName>SoundFont2</AssemblyName>
 		<Version>1.1.0</Version>
 
-		<Configurations>Release</Configurations>
+		<Configurations>Release;Debug</Configurations>
 		<GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>

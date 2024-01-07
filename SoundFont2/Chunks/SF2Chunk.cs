@@ -8,6 +8,7 @@ namespace Kermalis.SoundFont2
 
 		/// <summary>Length 4</summary>
 		public string ChunkName { get; }
+
 		/// <summary>Size in bytes</summary>
 		public uint Size { get; protected set; }
 

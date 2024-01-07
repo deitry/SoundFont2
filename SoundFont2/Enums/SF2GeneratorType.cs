@@ -4,7 +4,7 @@ namespace Kermalis.SoundFont2
 {
 	/// <summary>SF2 v2.1 spec page 38</summary>
 	[PublicAPI]
-	public enum SF2Generator : ushort
+	public enum SF2GeneratorType : ushort
 	{
 		/// <summary>
 		/// The offset, in sample data points, beyond the Start sample header parameter to the first sample data point to be played for this instrument. For example, if Start were 7 and startAddrOffset were 2, the first sample data point played would be sample data point 9.

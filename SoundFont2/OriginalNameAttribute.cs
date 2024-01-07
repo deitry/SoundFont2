@@ -7,6 +7,7 @@ namespace Kermalis.SoundFont2;
 /// Helper class to indicate original name as listed in format specification
 /// </summary>
 [PublicAPI]
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
 public class OriginalNameAttribute : Attribute
 {
     public string Name { get; }
