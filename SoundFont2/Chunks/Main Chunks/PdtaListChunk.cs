@@ -4,14 +4,35 @@ namespace Kermalis.SoundFont2
 {
 	public sealed class PdtaListChunk : SF2ListChunk
 	{
+		/// <summary>
+		/// Lists all presets within the SoundFont
+		/// </summary>
 		public PHDRSubChunk PHDRSubChunk { get; }
+
+		/// <summary>
+		/// Lists all preset zones within the SoundFont
+		/// </summary>
 		public BAGSubChunk PBAGSubChunk { get; }
+
+		/// <summary>Lists all preset zone modulators within the SoundFont</summary>
 		public MODSubChunk PMODSubChunk { get; }
+
+		/// <summary>Contains a list of preset zone generators for each preset zone within the SoundFont</summary>
 		public GENSubChunk PGENSubChunk { get; }
+
+		/// <summary>Lists all instruments within the SoundFont</summary>
 		public INSTSubChunk INSTSubChunk { get; }
+
+		/// <summary>Lists all instrument zones within the SoundFont</summary>
 		public BAGSubChunk IBAGSubChunk { get; }
+
+		/// <summary>Lists all instrument zone modulators within the SoundFont</summary>
 		public MODSubChunk IMODSubChunk { get; }
+
+		/// <summary>Contains a list of zone generators for each instrument zone within the SoundFont</summary>
 		public GENSubChunk IGENSubChunk { get; }
+
+		/// <summary>Lists all samples within the smpl sub-chunk and any referenced ROM samples</summary>
 		public SHDRSubChunk SHDRSubChunk { get; }
 
 		internal PdtaListChunk(SF2 inSf2) : base(inSf2, "pdta")

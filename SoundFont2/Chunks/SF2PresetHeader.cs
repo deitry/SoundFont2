@@ -6,11 +6,21 @@ namespace Kermalis.SoundFont2
 	{
 		public const uint SIZE = 38;
 
-		/// <summary>Length 20</summary>
+		/// <remarks>Length 20</remarks>
+		[OriginalName("achPresetName")]
 		public string PresetName { get; set; }
+
+		[OriginalName("wPreset")]
 		public ushort Preset { get; set; }
+
+		[OriginalName("wBank")]
 		public ushort Bank { get; set; }
+
+		/// <summary>The first zone in a given preset</summary>
+		/// <remarks>The number of zones in the preset is determined by the difference between the next preset’s wPresetBagNdx and the current wPresetBagNdx.</remarks>
+		[OriginalName("wPresetBagNdx")]
 		public ushort PresetBagIndex { get; set; }
+
 		// Reserved for future implementations
 		private readonly uint _library;
 		private readonly uint _genre;

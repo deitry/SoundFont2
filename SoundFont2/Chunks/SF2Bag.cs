@@ -8,8 +8,11 @@ namespace Kermalis.SoundFont2
 		public const uint SIZE = 4;
 
 		/// <summary>Index in list of generators</summary>
+		[OriginalName("wGenNdx")]
 		public ushort GeneratorIndex { get; set; }
+
 		/// <summary>Index in list of modulators</summary>
+		[OriginalName("wModNdx")]
 		public ushort ModulatorIndex { get; set; }
 
 		internal SF2Bag(SF2 inSf2, bool isPresetBag)

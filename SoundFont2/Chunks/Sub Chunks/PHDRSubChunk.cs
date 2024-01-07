@@ -17,12 +17,15 @@ namespace Kermalis.SoundFont2
 			}
 		}
 
+		public SF2PresetHeader GetPreset(int index) => _presets[index];
+
 		internal void AddPreset(SF2PresetHeader preset)
 		{
 			_presets.Add(preset);
 			Size = Count * SF2PresetHeader.SIZE;
 			_sf2.UpdateSize();
 		}
+
 
 		internal override void Write(EndianBinaryWriter writer)
 		{
