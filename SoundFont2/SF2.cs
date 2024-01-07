@@ -179,7 +179,7 @@ namespace Kermalis.SoundFont2
 			var lastPBagNdx = nextPHeader?.PresetBagIndex - 1 ?? HydraChunk.PBAGSubChunk.Count - 1;
 			// var pBagCnt = lastPBagNdx - header.PresetBagIndex + 1;
 
-			var preset = new SF2Preset(header);
+			var preset = new SF2Preset(this, header);
 			for (var i = header.PresetBagIndex; i <= lastPBagNdx; i++)
 			{
 				var bag = GetPresetBag(i);

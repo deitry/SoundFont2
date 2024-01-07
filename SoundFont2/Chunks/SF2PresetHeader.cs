@@ -35,6 +35,7 @@ namespace Kermalis.SoundFont2
 			Bank = bank;
 			PresetBagIndex = index;
 		}
+
 		internal SF2PresetHeader(EndianBinaryReader reader)
 		{
 			PresetName = reader.ReadString_Count_TrimNullTerminators(20);

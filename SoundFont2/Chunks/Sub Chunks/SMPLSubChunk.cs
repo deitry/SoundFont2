@@ -7,6 +7,8 @@ namespace Kermalis.SoundFont2
 	{
 		private short[] _samples; // Block of sample data
 
+		public short[] Samples => _samples;
+
 		internal SMPLSubChunk(SF2 inSf2) : base(inSf2, "smpl")
 		{
 			_samples = Array.Empty<short>();
