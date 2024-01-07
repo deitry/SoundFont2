@@ -97,11 +97,11 @@ namespace Kermalis.SoundFont2
 		/// <summary>Returns instrument index</summary>
 		public uint AddInstrument(string name)
 		{
-			return HydraChunk.INSTSubChunk.AddInstrument(new SF2Instrument(name, (ushort)HydraChunk.IBAGSubChunk.Count));
+			return HydraChunk.INSTSubChunk.AddInstrument(new SF2InstrumentHeader(name, (ushort)HydraChunk.IBAGSubChunk.Count));
 		}
 		public void AddInstrumentBag()
 		{
-			HydraChunk.IBAGSubChunk.Add(new SF2Bag(this, false));
+			HydraChunk.IBAGSubChunk.Add(new SF2InstrumentBagHeader(this, false));
 		}
 		public void AddInstrumentModulator()
 		{
@@ -109,11 +109,11 @@ namespace Kermalis.SoundFont2
 		}
 		public void AddInstrumentGenerator()
 		{
-			HydraChunk.IGENSubChunk.Add(new SF2Generator());
+			HydraChunk.IGENSubChunk.Add(new ());
 		}
 		public void AddInstrumentGenerator(SF2GeneratorType generator, SF2GeneratorAmount amount)
 		{
-			HydraChunk.IGENSubChunk.Add(new SF2Generator(generator, amount));
+			HydraChunk.IGENSubChunk.Add(new (generator, amount));
 		}
 		public void AddPreset(string name, ushort preset, ushort bank)
 		{
@@ -121,7 +121,7 @@ namespace Kermalis.SoundFont2
 		}
 		public void AddPresetBag()
 		{
-			HydraChunk.PBAGSubChunk.Add(new SF2Bag(this, true));
+			HydraChunk.PBAGSubChunk.Add(new SF2PresetBagHeader(this, true));
 		}
 		public void AddPresetModulator()
 		{
@@ -129,11 +129,11 @@ namespace Kermalis.SoundFont2
 		}
 		public void AddPresetGenerator()
 		{
-			HydraChunk.PGENSubChunk.Add(new SF2Generator());
+			HydraChunk.PGENSubChunk.Add(new ());
 		}
 		public void AddPresetGenerator(SF2GeneratorType generator, SF2GeneratorAmount amount)
 		{
-			HydraChunk.PGENSubChunk.Add(new SF2Generator(generator, amount));
+			HydraChunk.PGENSubChunk.Add(new (generator, amount));
 		}
 
 		private uint AddSampleHeader(string name, uint start, uint end, uint loopStart, uint loopEnd, uint sampleRate, byte originalKey, sbyte pitchCorrection)
@@ -182,33 +182,91 @@ namespace Kermalis.SoundFont2
 			var preset = new SF2Preset(header);
 			for (var i = header.PresetBagIndex; i <= lastPBagNdx; i++)
 			{
-				var pBag = HydraChunk.PBAGSubChunk[header.PresetBagIndex];
-
-				var pGenNdx = pBag.GeneratorIndex;
-				var nextPBag = i + 1 < HydraChunk.PBAGSubChunk.Count ? HydraChunk.PBAGSubChunk[i + 1] : null;
-				var lastPGenNdx = nextPBag?.GeneratorIndex - 1 ?? HydraChunk.PGENSubChunk.Count - 1;
-
-				var bag = new Runtime.SF2PresetBag();
-
-				for (var j = pGenNdx; j <= lastPGenNdx; j++)
-				{
-					var pGen = HydraChunk.PGENSubChunk[j];
-					bag.Generators.Add(pGen);
-
-					if (pGen.Generator == SF2GeneratorType.Instrument)
-					{
-						var inst = HydraChunk.INSTSubChunk[pGen.GeneratorAmount.Amount];
-						if (inst is null)
-							throw new InvalidDataException("Instrument not found");
-
-						bag.Instrument = inst;
-					}
-				}
-
+				var bag = GetPresetBag(i);
 				preset.Bags.Add(bag);
 			}
 
 			return preset;
+		}
+
+		public SF2Instrument? GetInstrument(int instrumentNdx)
+		{
+			var headers = HydraChunk.INSTSubChunk;
+			var bags = HydraChunk.IBAGSubChunk;
+
+			var header = instrumentNdx < headers.Count ? headers[instrumentNdx] : null;
+			if (header is null)
+				return null;
+
+			var iHeaderNdx = headers.IndexOf(header);
+			var nextIHeader = iHeaderNdx < headers.Count - 1
+				? headers[iHeaderNdx + 1]
+				: null;
+
+			var lastIBagNdx = nextIHeader?.InstrumentBagIndex - 1 ?? bags.Count - 1;
+			// var pBagCnt = lastPBagNdx - header.PresetBagIndex + 1;
+
+			var instrument = new SF2Instrument(header);
+			for (var i = header.InstrumentBagIndex; i <= lastIBagNdx; i++)
+			{
+				var bag = GetInstrumentBag(i);
+				instrument.Bags.Add(bag);
+			}
+
+			return instrument;
+		}
+
+		private SF2PresetBag GetPresetBag(ushort i)
+		{
+			var bagSubChunk = HydraChunk.PBAGSubChunk;
+			var genSubChunk = HydraChunk.PGENSubChunk;
+
+			var pBag = bagSubChunk[i];
+
+			var pGenNdx = pBag.GeneratorIndex;
+			var nextPBag = i + 1 < bagSubChunk.Count ? bagSubChunk[i + 1] : null;
+			var lastPGenNdx = nextPBag?.GeneratorIndex - 1 ?? genSubChunk.Count - 1;
+
+			var bag = new Runtime.SF2PresetBag();
+
+			for (var j = pGenNdx; j <= lastPGenNdx; j++)
+			{
+				var pGen = genSubChunk[j];
+				bag.Generators.Add(pGen);
+
+				if (pGen.Generator == SF2GeneratorType.Instrument)
+				{
+					var inst = GetInstrument(pGen.GeneratorAmount.Amount);
+					if (inst is null)
+						throw new InvalidDataException("Instrument not found");
+
+					bag.Instrument = inst;
+				}
+			}
+
+			return bag;
+		}
+
+		private SF2InstrumentBag GetInstrumentBag(ushort i)
+		{
+			var bagSubChunk = HydraChunk.IBAGSubChunk;
+			var genSubChunk = HydraChunk.IGENSubChunk;
+
+			var iBag = bagSubChunk[i];
+
+			var iGenNdx = iBag.GeneratorIndex;
+			var nextIBag = i + 1 < bagSubChunk.Count ? bagSubChunk[i + 1] : null;
+			var lastIGenNdx = nextIBag?.GeneratorIndex - 1 ?? genSubChunk.Count - 1;
+
+			var bag = new Runtime.SF2InstrumentBag(iBag);
+
+			for (var j = iGenNdx; j <= lastIGenNdx; j++)
+			{
+				var iGen = genSubChunk[j];
+				bag.Generators.Add(iGen);
+			}
+
+			return bag;
 		}
 	}
 }

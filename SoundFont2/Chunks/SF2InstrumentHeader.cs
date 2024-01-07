@@ -6,7 +6,7 @@ namespace Kermalis.SoundFont2
 	/// <summary>
 	/// A collection of zones which represents the sound of a single musical instrument or sound effect set.
 	/// </summary>
-	public sealed class SF2Instrument
+	public sealed class SF2InstrumentHeader
 	{
 		public const uint SIZE = 22;
 
@@ -19,12 +19,12 @@ namespace Kermalis.SoundFont2
 		[OriginalName("wInstBagNdx")]
 		public ushort InstrumentBagIndex { get; set; }
 
-		internal SF2Instrument(string name, ushort index)
+		internal SF2InstrumentHeader(string name, ushort index)
 		{
 			InstrumentName = name;
 			InstrumentBagIndex = index;
 		}
-		internal SF2Instrument(EndianBinaryReader reader)
+		internal SF2InstrumentHeader(EndianBinaryReader reader)
 		{
 			InstrumentName = reader.ReadString_Count_TrimNullTerminators(20);
 			InstrumentBagIndex = reader.ReadUInt16();

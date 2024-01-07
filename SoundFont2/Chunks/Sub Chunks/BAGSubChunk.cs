@@ -4,16 +4,17 @@ using System.Collections.Generic;
 
 namespace Kermalis.SoundFont2
 {
-	public sealed class BAGSubChunk : SF2Chunk, IList<SF2Bag>
+	public sealed class BAGSubChunk<T> : SF2Chunk, IList<T>
+		where T : SF2BagHeader
 	{
-		private readonly List<SF2Bag> _bags = new();
+		private readonly List<T> _bags = new();
 
 		internal BAGSubChunk(SF2 inSf2, bool isPreset) : base(inSf2, isPreset ? "pbag" : "ibag") { }
 		internal BAGSubChunk(SF2 inSf2, EndianBinaryReader reader) : base(inSf2, reader)
 		{
-			for (int i = 0; i < Size / SF2Bag.SIZE; i++)
+			for (int i = 0; i < Size / SF2BagHeader.SIZE; i++)
 			{
-				_bags.Add(new SF2Bag(reader));
+				_bags.Add(SF2BagHeader.Create<T>(reader));
 			}
 		}
 
@@ -26,7 +27,7 @@ namespace Kermalis.SoundFont2
 			}
 		}
 
-		public IEnumerator<SF2Bag> GetEnumerator() => _bags.GetEnumerator();
+		public IEnumerator<T> GetEnumerator() => _bags.GetEnumerator();
 
 		public override string ToString()
 		{
@@ -36,30 +37,30 @@ namespace Kermalis.SoundFont2
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		public void Add(SF2Bag item)
+		public void Add(T item)
 		{
 			_bags.Add(item);
-			Size = (uint)Count * SF2Bag.SIZE;
+			Size = (uint)Count * SF2BagHeader.SIZE;
 			_sf2.UpdateSize();
 		}
 
 		public void Clear() => _bags.Clear();
 
-		public bool Contains(SF2Bag item) => _bags.Contains(item);
+		public bool Contains(T item) => _bags.Contains(item);
 
-		public void CopyTo(SF2Bag[] array, int arrayIndex) => _bags.CopyTo(array, arrayIndex);
+		public void CopyTo(T[] array, int arrayIndex) => _bags.CopyTo(array, arrayIndex);
 
-		public bool Remove(SF2Bag item) => throw new System.NotImplementedException();
+		public bool Remove(T item) => throw new System.NotImplementedException();
 
 		public int Count => _bags.Count;
 		public bool IsReadOnly => false;
-		public int IndexOf(SF2Bag item) => _bags.IndexOf(item);
+		public int IndexOf(T item) => _bags.IndexOf(item);
 
-		public void Insert(int index, SF2Bag item) => throw new System.NotImplementedException();
+		public void Insert(int index, T item) => throw new System.NotImplementedException();
 
 		public void RemoveAt(int index) => throw new System.NotImplementedException();
 
-		public SF2Bag this[int index]
+		public T this[int index]
 		{
 			get => _bags[index];
 			set => _bags[index] = value;
