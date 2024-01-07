@@ -18,11 +18,7 @@ namespace Kermalis.SoundFont2
 			GeneratorAmount = new SF2GeneratorAmount { Amount = reader.ReadInt16() };
 		}
 
-		public override string ToString()
-		{
-			return $"Preset Generator = {Generator}" +
-				$",\nAmount = \"{GeneratorAmount}\"";
-		}
+		public override string ToString() => "Preset " + base.ToString();
 	}
 
 	[PublicAPI]
@@ -40,13 +36,12 @@ namespace Kermalis.SoundFont2
 			GeneratorAmount = new SF2GeneratorAmount { Amount = reader.ReadInt16() };
 		}
 
-		public override string ToString()
-		{
-			return $"Instrument Generator = {Generator}" +
-				$",\nAmount = \"{GeneratorAmount}\"";
-		}
+		public override string ToString() => "Instrument " + base.ToString();
 	}
 
+	/// <summary>
+	/// Description of a single synthesizer parameter
+	/// </summary>
 	[PublicAPI]
 	[OriginalName("sfGenList")]
 	public abstract class SF2GeneratorHeader
@@ -98,10 +93,66 @@ namespace Kermalis.SoundFont2
 			writer.WriteInt16(GeneratorAmount.Amount);
 		}
 
-		public override string ToString()
+		public override string ToString() =>
+			KindOf(Generator) switch
+			{
+				GeneratorKind.Index => $"Generator = {Generator},\nIndex = {GeneratorAmount.UAmount}",
+				GeneratorKind.Range => $"Generator = {Generator},\nRange = {GeneratorAmount.LowByte} .. {GeneratorAmount.HighByte}",
+				GeneratorKind.Sample => $"Generator = {Generator},\nSample = {GeneratorAmount.UAmount}",
+				_ => $"Generator = {Generator},\nGenerator amount = \"{GeneratorAmount}\"",
+			};
+
+		[PublicAPI]
+		public enum GeneratorKind
 		{
-			return $"Generator List - Generator = {Generator}" +
-				$",\nGenerator amount = \"{GeneratorAmount}\"";
+			/// <summary>Value Generators are generators whose value directly affects a signal processing parameter.</summary>
+			Value,
+
+			/// <summary>An Index Generator’s amount is an index into another data structure.</summary>
+			Index,
+
+			/// <summary>Defines a range of note-on parameters outside of which the zone is undefined.</summary>
+			Range,
+
+			/// <summary>Generators which directly affect a sample’s properties. These generators are illegal at the preset level.</summary>
+			Sample,
+
+			/// <summary>Substitution Generators are generators which substitute a value for a note-on parameter. These generators are illegal at the preset level.</summary>
+			Substitution,
+		}
+
+		public static GeneratorKind KindOf(SF2GeneratorType type)
+		{
+			return type switch
+			{
+				SF2GeneratorType.Instrument => GeneratorKind.Index,
+				SF2GeneratorType.SampleID => GeneratorKind.Index,
+
+				SF2GeneratorType.KeyRange => GeneratorKind.Range,
+				SF2GeneratorType.VelRange => GeneratorKind.Range,
+
+				// these types are mentioned in the documentation but not present in enum
+				// SF2GeneratorType.OverridingKeyNumber => SF2GeneratorType.Substitution,
+				// SF2GeneratorType.OverridingVelocity => SF2GeneratorType.Substitution,
+
+				SF2GeneratorType.OverridingRootKey => GeneratorKind.Sample,
+				SF2GeneratorType.SampleModes => GeneratorKind.Sample,
+				SF2GeneratorType.ExclusiveClass => GeneratorKind.Sample,
+
+				SF2GeneratorType.StartAddrsOffset => GeneratorKind.Sample,
+				SF2GeneratorType.  EndAddrsOffset => GeneratorKind.Sample,
+
+				SF2GeneratorType.StartloopAddrsOffset => GeneratorKind.Sample,
+				SF2GeneratorType.  EndloopAddrsOffset => GeneratorKind.Sample,
+
+				SF2GeneratorType.StartAddrsCoarseOffset => GeneratorKind.Sample,
+				SF2GeneratorType.  EndAddrsCoarseOffset => GeneratorKind.Sample,
+
+				SF2GeneratorType.StartloopAddrsCoarseOffset => GeneratorKind.Sample,
+				SF2GeneratorType.  EndloopAddrsCoarseOffset => GeneratorKind.Sample,
+
+				_ => GeneratorKind.Value,
+			};
 		}
 	}
 }
