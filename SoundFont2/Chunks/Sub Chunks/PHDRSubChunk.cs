@@ -22,7 +22,7 @@ namespace Kermalis.SoundFont2
 
 		public bool Contains(SF2PresetHeader item) => _presets.Contains(item);
 
-		public void CopyTo(SF2PresetHeader[] array, int arrayIndex) => throw new System.NotImplementedException();
+		public void CopyTo(SF2PresetHeader[] array, int arrayIndex) => _presets.CopyTo(array, arrayIndex);
 
 		public bool Remove(SF2PresetHeader item) => throw new System.NotImplementedException();
 
