@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 
 namespace Kermalis.SoundFont2.Runtime;
@@ -35,6 +36,9 @@ public class SF2InstrumentBag
 	public SF2InstrumentBagHeader Header { get; }
 
 	public List<SF2InstrumentGeneratorHeader> Generators { get; } = new();
+
+	public SF2InstrumentGeneratorHeader? Get(SF2GeneratorType type) =>
+		Generators.FirstOrDefault(g => g.Generator == type);
 }
 
 [PublicAPI]
@@ -64,7 +68,7 @@ public class SF2Preset(SF2 soundData, SF2PresetHeader header)
 	{
 		var bag = Bags.Find(b => b.Instrument != null
 			// && b.Instrument.Header.KeyRange.Contains(noteKey)
-			);
+		);
 
 		if (bag == null)
 			throw new Exception("No bag found for note key " + noteKey);
@@ -77,9 +81,9 @@ public class SF2Preset(SF2 soundData, SF2PresetHeader header)
 		// var sampleHeader = Header.SF2.SampleHeaders[sampleId];
 		return new SF2Sample
 		{
-		// 	LoopStart = sampleHeader.LoopStart,
-		// 	LoopInt = sampleHeader.LoopEnd - sampleHeader.LoopStart,
-		// 	SampleData = Header.SF2.SampleData.AsSpan(sampleHeader.Start, sampleHeader.End - sampleHeader.Start)
+			// 	LoopStart = sampleHeader.LoopStart,
+			// 	LoopInt = sampleHeader.LoopEnd - sampleHeader.LoopStart,
+			// 	SampleData = Header.SF2.SampleData.AsSpan(sampleHeader.Start, sampleHeader.End - sampleHeader.Start)
 			// SampleData = Samples,
 		};
 	}
